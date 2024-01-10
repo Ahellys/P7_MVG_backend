@@ -1,0 +1,4 @@
+Pour pouvoir tester le backend, créer un fichier .env avec les valeurs suivantes:
+
+TOKEN_SECRET="RANDOM_TOKEN_SECRET"
+MONGODB_AUTH="mongodb+srv://yoannOC:UDARgVMOfdHCr5Up@oc-course-ahellys.dgooeka.mongodb.net/test?retryWrites=true&w=majority"
