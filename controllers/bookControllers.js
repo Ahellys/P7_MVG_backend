@@ -1,9 +1,10 @@
-const { error } = require('console');
 const Book = require('../models/bookModel');
 const fs = require('fs');
 
 exports.createBook = (req, res, next) => {
         const bookObject = JSON.parse(req.body.book);
+        delete bookObject.ratings[0];
+        bookObject.averageRating = 0;
         const id = req.auth.userId;
         const book = new Book({
             ...bookObject,
@@ -12,7 +13,7 @@ exports.createBook = (req, res, next) => {
         });
       
         book.save()
-        .then(() =>  res.status(201))
+        .then(() =>  res.status(201).json(book))
         .catch(error => res.status(400).json({ error }))
 };
 
@@ -48,7 +49,7 @@ exports.modifyBook = (req, res, next) => {
                 res.status(403).json({ message : 'unauthorized request'});
             } else {
                 Book.updateOne({ _id: req.params.id}, { ...bookObject, _id: req.params.id})
-                .then(() => res.status(200))
+                .then(() => res.status(200).json(book))
                 .catch(error => res.status(401).json({ error }));
             }
         })
@@ -66,7 +67,7 @@ exports.deleteBook = (req, res, next) => {
             const filename = book.imageUrl.split('/images/')[1];
             fs.unlink(`images/${filename}`, () => {
                 Book.deleteOne({_id: req.params.id})
-                    .then(() => { res.status(200)})
+                    .then(() => { res.status(200).json({message: "deleted successfully"})})
                     .catch(error => res.status(401).json({ error }));
             });
         }
