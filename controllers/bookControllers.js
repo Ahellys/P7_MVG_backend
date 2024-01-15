@@ -21,16 +21,17 @@ exports.rateBook = (req, res, next) => {
     Book.findOne({ _id: req.params.id })
     .then(book => {
         if(book.ratings.includes( req.auth.userId)){
-           res.status(401).json('Modification de note impossible');
+           res.status(403).json('Modification de note impossible');
         } else {
-            let avg = (book.averageRating+req.body.rating)/(book.ratings.length+1)
-            Book.updateOne({ _id: req.params.id}, {averageRating: avg, $push: {ratings: {userId : req.auth.userId, grade : req.body.rating}}})
+            const avg = (book.averageRating+req.body.rating)/(book.ratings.length+1)
+            const rounded = Math.round(avg*10)/10;
+            Book.updateOne({ _id: req.params.id}, {averageRating: rounded, $push: {ratings: {userId : req.auth.userId, grade : req.body.rating}}})
             .then(() => {
                 Book.findOne({ _id: req.params.id })
                 .then(newBook => res.status(200).json(newBook))
                 .catch(error => res.status(400).json({error}));
             })
-            .catch(error => res.status(401).json({error}));
+            .catch(error => res.status(400).json({error}));
         }
     })
     .catch(error => res.status(401).json({error}));
@@ -41,7 +42,6 @@ exports.modifyBook = (req, res, next) => {
         ...JSON.parse(req.body.book),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
-    
     delete bookObject._userId;
     Book.findOne({_id: req.params.id})
         .then((book) => {
@@ -50,7 +50,7 @@ exports.modifyBook = (req, res, next) => {
             } else {
                 Book.updateOne({ _id: req.params.id}, { ...bookObject, _id: req.params.id})
                 .then(() => res.status(200).json(book))
-                .catch(error => res.status(401).json({ error }));
+                .catch(error => res.status(400).json({ error }));
             }
         })
         .catch((error) => {
@@ -80,7 +80,7 @@ exports.deleteBook = (req, res, next) => {
 exports.getAllBooks= (req, res, next) => {
     Book.find()
     .then( books => res.status(200).json(books))
-    .catch(error => res.status(400).json({error}));
+    .catch(error => res.status(404).json({error}));
 };
 
 exports.getBooksByRating = (req, res, next) => {
